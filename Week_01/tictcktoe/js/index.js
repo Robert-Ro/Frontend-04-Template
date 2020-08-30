@@ -10,19 +10,27 @@ window.onload = function () {
     var pattern = [0, 0, 0, 0, 0, 0, 0, 0, 0];
     var color = 1;
     var board = document.getElementById('board');
-    var move = function (x, y) {
+    var userMove = function (x, y) {
         pattern[x * dimension + y] = color;
         if (check(pattern, color)) {
             alert(color === 2 ? '⭕ is winner!' : '❌ is winner!');
         }
-        color = dimension - color; // TIPS  1,2 switch value
-        console.log(bestChoice(pattern, color));
-        show(pattern);
-        // if (willWin(pattern, color)) {
-        //     alert(color === 2 ? '⭕ will winner!' : '❌ will winner!')
-        // }
+        color = 3 - color; // TIPS  1,2 switch value
+        show();
+        computerMove();
     };
-    var show = function (pattern) {
+    var computerMove = function () {
+        var choice = bestChoice(pattern, color);
+        if (choice.point) {
+            pattern[choice.point[0] * dimension + choice.point[1]] = color;
+        }
+        if (check(pattern, color)) {
+            alert(color === 2 ? '⭕ is winner!' : '❌ is winner!');
+        }
+        color = 3 - color;
+        show();
+    };
+    var show = function () {
         board.innerHTML = '';
         var _loop_1 = function (i) {
             var _loop_2 = function (j) {
@@ -32,7 +40,7 @@ window.onload = function () {
                 cell.classList.add('cell');
                 cell.innerText = value === 0 ? ' ' : value === 1 ? '❌' : '⭕';
                 cell.addEventListener('click', function (e) {
-                    cell.innerText == '' && move(i, j);
+                    cell.innerText == '' && userMove(i, j);
                 });
                 board === null || board === void 0 ? void 0 : board.appendChild(cell);
             };
@@ -149,5 +157,5 @@ window.onload = function () {
             result: point ? result : WinFlag.DRAW,
         };
     };
-    show(pattern);
+    show();
 };

@@ -15,19 +15,27 @@ window.onload = () => {
     const board: HTMLDivElement | null = document.getElementById(
         'board'
     ) as HTMLDivElement
-    const move = (x: number, y: number) => {
+    const userMove = (x: number, y: number) => {
         pattern[x * dimension + y] = color
         if (check(pattern, color)) {
             alert(color === 2 ? '⭕ is winner!' : '❌ is winner!')
         }
-        color = dimension - color // TIPS  1,2 switch value
-        console.log(bestChoice(pattern, color))
-        show(pattern)
-        // if (willWin(pattern, color)) {
-        //     alert(color === 2 ? '⭕ will winner!' : '❌ will winner!')
-        // }
+        color = 3 - color // TIPS  1,2 switch value
+        show()
+        computerMove()
     }
-    const show = (pattern: number[]) => {
+    const computerMove = () => {
+        let choice = bestChoice(pattern, color)
+        if (choice.point) {
+            pattern[choice.point[0] * dimension + choice.point[1]] = color
+        }
+        if (check(pattern, color)) {
+            alert(color === 2 ? '⭕ is winner!' : '❌ is winner!')
+        }
+        color = 3 - color
+        show()
+    }
+    const show = () => {
         board.innerHTML = ''
         for (let i = 0; i < dimension; i++) {
             for (let j = 0; j < dimension; j++) {
@@ -37,7 +45,7 @@ window.onload = () => {
                 cell.classList.add('cell')
                 cell.innerText = value === 0 ? ' ' : value === 1 ? '❌' : '⭕'
                 cell.addEventListener('click', (e: MouseEvent) => {
-                    cell.innerText == '' && move(i, j)
+                    cell.innerText == '' && userMove(i, j)
                 })
                 board?.appendChild(cell)
             }
@@ -145,5 +153,5 @@ window.onload = () => {
         }
     }
 
-    show(pattern)
+    show()
 }
