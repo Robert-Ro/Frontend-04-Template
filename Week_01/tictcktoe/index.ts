@@ -8,33 +8,30 @@ interface Result {
     point: Point
     result: WinFlag
 }
-
+const dimension = 3
 window.onload = () => {
-    const pattern: number[][] = [
-        [0, 0, 2],
-        [0, 1, 0],
-        [0, 0, 0],
-    ]
+    const pattern: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0]
     let color = 1
     const board: HTMLDivElement | null = document.getElementById(
         'board'
     ) as HTMLDivElement
     const move = (x: number, y: number) => {
-        pattern[x][y] = color
+        pattern[x * dimension + y] = color
         if (check(pattern, color)) {
             alert(color === 2 ? '⭕ is winner!' : '❌ is winner!')
         }
-        color = 3 - color // TIPS  1,2 switch value
+        color = dimension - color // TIPS  1,2 switch value
+        console.log(bestChoice(pattern, color))
         show(pattern)
-        if (willWin(pattern, color)) {
-            alert(color === 2 ? '⭕ will winner!' : '❌ will winner!')
-        }
+        // if (willWin(pattern, color)) {
+        //     alert(color === 2 ? '⭕ will winner!' : '❌ will winner!')
+        // }
     }
-    const show = (pattern: number[][]) => {
+    const show = (pattern: number[]) => {
         board.innerHTML = ''
-        for (let i = 0; i < pattern.length; i++) {
-            for (let j = 0; j < pattern[i].length; j++) {
-                const value = pattern[i][j]
+        for (let i = 0; i < dimension; i++) {
+            for (let j = 0; j < dimension; j++) {
+                const value = pattern[i * dimension + j]
                 const cell: HTMLDivElement = document.createElement('div')
                 // div.setAttribute('class', 'cell')
                 cell.classList.add('cell')
@@ -47,28 +44,22 @@ window.onload = () => {
             board?.appendChild(document.createElement('br'))
         }
     }
-    const check = (pattern: number[][], color: number): boolean => {
-        // horzontal direction
-        // [0,0] = [0,1] = [0, 2]
-        // [1,0] = [1,1] = [1, 2]
-        // [2,0] = [2,1] = [2, 2]
-        for (let i = 0; i < pattern.length; i++) {
+    const check = (pattern: number[], color: number): boolean => {
+        // horzontal direction 012 dimension45 678
+        for (let i = 0; i < dimension; i++) {
             let win = true
-            for (let j = 0; j < pattern[i].length; j++) {
-                if (pattern[i][j] !== color) {
+            for (let j = 0; j < dimension; j++) {
+                if (pattern[i * dimension + j] !== color) {
                     win = false
                 }
             }
             if (win) return true
         }
-        // vertical direction
-        // [0,0] = [1,0] = [2, 0]
-        // [0,1] = [1,1] = [2, 1]
-        // [0,2] = [1,2] = [2, 2]
-        for (let i = 0; i < pattern.length; i++) {
+        // vertical direction 0dimension6 147 258
+        for (let i = 0; i < dimension; i++) {
             let win = true
-            for (let j = 0; j < pattern[i].length; j++) {
-                if (pattern[j][i] !== color) {
+            for (let j = 0; j < dimension; j++) {
+                if (pattern[j * dimension + i] !== color) {
                     win = false
                 }
             }
@@ -77,9 +68,9 @@ window.onload = () => {
         // slash direction
         {
             let win = true
-            // 0,0 1,1 2,2
-            for (let i = 0; i < pattern.length; i++) {
-                if (pattern[i][i] !== color) {
+            // 0,4,8
+            for (let i = 0; i < dimension; i++) {
+                if (pattern[i * dimension + i] !== color) {
                     win = false
                 }
             }
@@ -87,9 +78,9 @@ window.onload = () => {
         }
         {
             let win = true
-            // 0,2 1,1 2,0
-            for (let i = 0; i < pattern.length; i++) {
-                if (pattern[i][2 - i] !== color) {
+            // 2,4,6
+            for (let i = 0; i < dimension; i++) {
+                if (pattern[i * 2 + 2] !== color) {
                     win = false
                 }
             }
@@ -102,15 +93,15 @@ window.onload = () => {
      * @param pattern
      * @param color
      */
-    const willWin = (pattern: number[][], color: number): Point | null => {
-        for (let i = 0; i < pattern.length; i++) {
-            for (let j = 0; j < pattern[i].length; j++) {
-                const value = pattern[i][j]
+    const willWin = (pattern: number[], color: number): Point | null => {
+        for (let i = 0; i < dimension; i++) {
+            for (let j = 0; j < dimension; j++) {
+                const value = pattern[i * dimension + j]
                 if (value) {
                     continue
                 }
                 const patternNew = clone(pattern)
-                patternNew[i][j] = color
+                patternNew[i * dimension + j] = color
                 if (check(patternNew, color)) {
                     return [i, j]
                 }
@@ -118,10 +109,10 @@ window.onload = () => {
         }
         return null
     }
-    const clone = (pattern: number[][]): number[][] => {
-        return JSON.parse(JSON.stringify(pattern))
+    const clone = (pattern: number[]): number[] => {
+        return Object.create(pattern) // memory
     }
-    const bestChoice = (pattern: number[][], color: number): Result => {
+    const bestChoice = (pattern: number[], color: number): Result => {
         let p: Point | null = null
         if ((p = willWin(pattern, color))) {
             return {
@@ -131,17 +122,20 @@ window.onload = () => {
         }
         let result = -2
         let point: Point | null = null
-        for (let i = 0; i < pattern.length; i++) {
-            for (let j = 0; j < pattern[i].length; j++) {
-                if (pattern[i][j]) {
+        outer: for (let i = 0; i < dimension; i++) {
+            for (let j = 0; j < dimension; j++) {
+                if (pattern[i * dimension + j]) {
                     continue
                 }
                 let temp = clone(pattern)
-                temp[i][j] = color
-                let r = bestChoice(temp, 3 - color).result // 对方的最佳，我方的最差
+                temp[i * dimension + j] = color
+                let r = bestChoice(temp, dimension - color).result // 对方的最佳，我方的最差
                 if (-r > result) {
                     point = [i, j]
                     result = -r
+                }
+                if (result === 1) {
+                    break outer // 胜负分枝
                 }
             }
         }
@@ -152,5 +146,4 @@ window.onload = () => {
     }
 
     show(pattern)
-    console.log(bestChoice(pattern, color))
 }

@@ -5,30 +5,28 @@ var WinFlag;
     WinFlag[WinFlag["DRAW"] = 0] = "DRAW";
     WinFlag[WinFlag["WIN"] = 1] = "WIN";
 })(WinFlag || (WinFlag = {}));
+var dimension = 3;
 window.onload = function () {
-    var pattern = [
-        [0, 0, 2],
-        [0, 1, 0],
-        [0, 0, 0],
-    ];
+    var pattern = [0, 0, 0, 0, 0, 0, 0, 0, 0];
     var color = 1;
     var board = document.getElementById('board');
     var move = function (x, y) {
-        pattern[x][y] = color;
+        pattern[x * dimension + y] = color;
         if (check(pattern, color)) {
             alert(color === 2 ? '⭕ is winner!' : '❌ is winner!');
         }
-        color = 3 - color; // TIPS  1,2 switch value
+        color = dimension - color; // TIPS  1,2 switch value
+        console.log(bestChoice(pattern, color));
         show(pattern);
-        if (willWin(pattern, color)) {
-            alert(color === 2 ? '⭕ will winner!' : '❌ will winner!');
-        }
+        // if (willWin(pattern, color)) {
+        //     alert(color === 2 ? '⭕ will winner!' : '❌ will winner!')
+        // }
     };
     var show = function (pattern) {
         board.innerHTML = '';
         var _loop_1 = function (i) {
             var _loop_2 = function (j) {
-                var value = pattern[i][j];
+                var value = pattern[i * dimension + j];
                 var cell = document.createElement('div');
                 // div.setAttribute('class', 'cell')
                 cell.classList.add('cell');
@@ -38,38 +36,32 @@ window.onload = function () {
                 });
                 board === null || board === void 0 ? void 0 : board.appendChild(cell);
             };
-            for (var j = 0; j < pattern[i].length; j++) {
+            for (var j = 0; j < dimension; j++) {
                 _loop_2(j);
             }
             board === null || board === void 0 ? void 0 : board.appendChild(document.createElement('br'));
         };
-        for (var i = 0; i < pattern.length; i++) {
+        for (var i = 0; i < dimension; i++) {
             _loop_1(i);
         }
     };
     var check = function (pattern, color) {
-        // horzontal direction
-        // [0,0] = [0,1] = [0, 2]
-        // [1,0] = [1,1] = [1, 2]
-        // [2,0] = [2,1] = [2, 2]
-        for (var i = 0; i < pattern.length; i++) {
+        // horzontal direction 012 dimension45 678
+        for (var i = 0; i < dimension; i++) {
             var win = true;
-            for (var j = 0; j < pattern[i].length; j++) {
-                if (pattern[i][j] !== color) {
+            for (var j = 0; j < dimension; j++) {
+                if (pattern[i * dimension + j] !== color) {
                     win = false;
                 }
             }
             if (win)
                 return true;
         }
-        // vertical direction
-        // [0,0] = [1,0] = [2, 0]
-        // [0,1] = [1,1] = [2, 1]
-        // [0,2] = [1,2] = [2, 2]
-        for (var i = 0; i < pattern.length; i++) {
+        // vertical direction 0dimension6 147 258
+        for (var i = 0; i < dimension; i++) {
             var win = true;
-            for (var j = 0; j < pattern[i].length; j++) {
-                if (pattern[j][i] !== color) {
+            for (var j = 0; j < dimension; j++) {
+                if (pattern[j * dimension + i] !== color) {
                     win = false;
                 }
             }
@@ -79,9 +71,9 @@ window.onload = function () {
         // slash direction
         {
             var win = true;
-            // 0,0 1,1 2,2
-            for (var i = 0; i < pattern.length; i++) {
-                if (pattern[i][i] !== color) {
+            // 0,4,8
+            for (var i = 0; i < dimension; i++) {
+                if (pattern[i * dimension + i] !== color) {
                     win = false;
                 }
             }
@@ -90,9 +82,9 @@ window.onload = function () {
         }
         {
             var win = true;
-            // 0,2 1,1 2,0
-            for (var i = 0; i < pattern.length; i++) {
-                if (pattern[i][2 - i] !== color) {
+            // 2,4,6
+            for (var i = 0; i < dimension; i++) {
+                if (pattern[i * 2 + 2] !== color) {
                     win = false;
                 }
             }
@@ -107,14 +99,14 @@ window.onload = function () {
      * @param color
      */
     var willWin = function (pattern, color) {
-        for (var i = 0; i < pattern.length; i++) {
-            for (var j = 0; j < pattern[i].length; j++) {
-                var value = pattern[i][j];
+        for (var i = 0; i < dimension; i++) {
+            for (var j = 0; j < dimension; j++) {
+                var value = pattern[i * dimension + j];
                 if (value) {
                     continue;
                 }
                 var patternNew = clone(pattern);
-                patternNew[i][j] = color;
+                patternNew[i * dimension + j] = color;
                 if (check(patternNew, color)) {
                     return [i, j];
                 }
@@ -123,7 +115,7 @@ window.onload = function () {
         return null;
     };
     var clone = function (pattern) {
-        return JSON.parse(JSON.stringify(pattern));
+        return Object.create(pattern); // memory
     };
     var bestChoice = function (pattern, color) {
         var p = null;
@@ -135,17 +127,20 @@ window.onload = function () {
         }
         var result = -2;
         var point = null;
-        for (var i = 0; i < pattern.length; i++) {
-            for (var j = 0; j < pattern[i].length; j++) {
-                if (pattern[i][j]) {
+        outer: for (var i = 0; i < dimension; i++) {
+            for (var j = 0; j < dimension; j++) {
+                if (pattern[i * dimension + j]) {
                     continue;
                 }
                 var temp = clone(pattern);
-                temp[i][j] = color;
-                var r = bestChoice(temp, 3 - color).result; // 对方的最佳，我方的最差
+                temp[i * dimension + j] = color;
+                var r = bestChoice(temp, dimension - color).result; // 对方的最佳，我方的最差
                 if (-r > result) {
                     point = [i, j];
                     result = -r;
+                }
+                if (result === 1) {
+                    break outer; // 胜负分枝
                 }
             }
         }
@@ -155,5 +150,4 @@ window.onload = function () {
         };
     };
     show(pattern);
-    console.log(bestChoice(pattern, color));
 };
