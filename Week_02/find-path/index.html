@@ -30,7 +30,58 @@
 
 
   <script>
+    class BinaryHeap {
+      constructor(data, compare) {
+        this.data = data
+        this.compare = compare
+      }
+      take() {
+        if (!this.data.length) {
+          return
+        }
+        let min = this.data[0]
+        let i = 0
+        while (i < this.data.length) {
+          if (i * 2 + 1 >= this.data.length) {
+            break
+          }
+          if (i * 2 + 2 >= this.data.length) {
+            this.data[i] = this.data[i * 2 + 1]
+            i = i * 2 + 1
+            break
+          }
+          if (this.compare(this.data[i * 2 + 1], this.data[i * 2 + 2]) < 0) {
+            this.data[i] = this.data[i * 2 + 1]
+            i = i * 2 + 1
+          } else {
+            this.data[i] = this.data[i * 2 + 2]
+            i = i * 2 + 2
+          }
+        }
+        if (i < this.data.length - 1) {
+          this.insertAt(i, this.data.pop())
+        } else {
+          this.data.pop()
+        }
+        return min
+      }
+      insertAt(i, v) {
+        this.data[i] = v
+        while (i > 0 && this.compare(v, this.data[Math.floor((i - 1) / 2)]) < 0) {
+          this.data[i] = this.data[Math.floor((i - 1) / 2)]
+          this.data[Math.floor((i - 1) / 2)] = v
+          i = Math.floor((i - 1) / 2)
+        }
+      }
+      insert(v) {
+        this.insertAt(this.data.length, v)
+      }
+      get length() {
+        return this.data.length
+      }
+    }
     class Sorted {
+      // TODO 二差堆
       constructor(data, compare) {
         this.data = data.slice()
         this.compare = compare || ((a, b) => (a - b))
@@ -53,6 +104,9 @@
       }
       give(v) {
         this.data.push(v)
+      }
+      get length() {
+        return this.data.length
       }
     }
     var container = document.getElementById('container')
@@ -96,28 +150,34 @@
     })
     document.addEventListener('contextmenu', function (e) { e.preventDefault() })
 
-    /**
-    * push/shift => 广度优先
-    * push/pop => 深度优先
-    */
 
     async function findPath(map, start, end) {
-      var queue = [start] // queue=>广度优先， stack=>深度优先
+      // var queue = new Sorted([start], (a, b) => distance(a) - distance(b))
+      // var queue = [start]
+      var queue = new BinaryHeap([start], (a, b) => distance(a) - distance(b))
       var table = Object.create(map)
+
+      const distance = (point) => {
+        return (point[0] - end[0]) ** 2 + (point[1] - end[1]) ** 2
+      }
       async function insert(x, y, pre) {
         // 判断边界、墙
         if (x < 0 || x >= 100 || y < 0 || y >= 100) {
           return
         }
         if (table[100 * y + x]) {
-          return
+          return // TODO
         }
         container.children[100 * y + x].style.backgroundColor = 'lightgreen'
-        queue.push([x, y])
+        // queue.push([x, y])
+        // queue.give([x, y]) // TODO
+        queue.insert([x, y])
         table[y * 100 + x] = pre
       }
       while (queue.length) {
-        let [x, y] = queue.shift()
+        let [x, y] = queue.take()
+        // let [x, y] = queue.shift()
+        console.log(x, y)
         if (x === end[0] && y === end[1]) {
           console.log('end')
           let path = []
