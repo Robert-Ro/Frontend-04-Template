@@ -112,6 +112,28 @@ Object 对象在运行中会发生拆箱操作，主要是`toPrimitive`在起作
     > 传给 JavaScript 引擎(静态的代码库)的任务
 -   微任务(Promise)
 -   函数调用(Execution Context)
--   语句/声明(Completion Record)
+    -   stack structure:
+        -   top Execution Context: Running Execution Context
+        -   conpostion:
+            -   code evaluation state: remember the running state of async function and generator
+            -   Function
+            -   Script or Module: context
+            -   Generator: exists in Generator function context
+            -   Realm
+                -   [Doc](https://www.ecma-international.org/ecma-262/#realm)
+            -   LexicalEnvironment
+                -   this
+                -   new.target
+                -   super
+                -   variable(created by let or const)
+            -   VariableEnvironment
+                -   variable(created by var), legancy
+-   语句/声明(Environment Record)
+    -   Environment Records
+        -   Declarative Environment Records
+            -   Function Environment Records
+            -   module Environment Records
+        -   Global Environment Records
+        -   Object Environment Records
 -   表达式(Reference)
 -   直接量/变量/this
